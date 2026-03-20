@@ -6,6 +6,7 @@ using TMPro;
 public class MusicPlayToggleButton : MonoBehaviour
 {
     public MusicPlay MusicPlayer;
+    public AudioSource AudioSourceRef;
     public Button ToggleButton;
     public TMP_Text Label;
     public string PlayText = "播放";
@@ -14,6 +15,8 @@ public class MusicPlayToggleButton : MonoBehaviour
     public UnityEvent OnPauseUI;
 
     bool lastIsPlaying;
+    float lastPausedTime;
+    bool hasPausedTime;
 
     void Start()
     {
@@ -48,15 +51,22 @@ public class MusicPlayToggleButton : MonoBehaviour
         if (MusicPlayer == null) return;
         if (MusicPlayer.IsPlaying())
         {
+            if (AudioSourceRef != null && AudioSourceRef.clip != null)
+            {
+                lastPausedTime = AudioSourceRef.time;
+                hasPausedTime = true;
+            }
             MusicPlayer.Pause();
-            if (Label != null) Label.text = PlayText;
-            OnPauseUI.Invoke();
         }
         else
         {
             MusicPlayer.Play();
-            if (Label != null) Label.text = PauseText;
-            OnPlayUI.Invoke();
+            if (AudioSourceRef != null && AudioSourceRef.clip != null && hasPausedTime)
+            {
+                float len = AudioSourceRef.clip.length;
+                AudioSourceRef.time = Mathf.Clamp(lastPausedTime, 0f, Mathf.Max(0f, len - 0.01f));
+            }
+            hasPausedTime = false;
         }
     }
 

@@ -251,5 +251,30 @@ void CreateLyricLines()
     }
 
     content.sizeDelta = new Vector2(content.sizeDelta.x, lineHeight * Mathf.Max(lyrics.Count, 1));
+
+    // 初始化时让当前（首行）居中一次
+    if (scrollRect != null && content != null)
+    {
+        // 若已在播放，可按当前时间定位；否则默认首行
+        int initIndex = 0;
+        if (audioSource != null && audioSource.isPlaying && lyrics.Count > 0)
+        {
+            float t = audioSource.time;
+            for (int i = 0; i < lyrics.Count; i++)
+            {
+                if (t < lyrics[i].time)
+                {
+                    initIndex = Mathf.Max(0, i - 1);
+                    break;
+                }
+                if (i == lyrics.Count - 1) initIndex = i;
+            }
+        }
+        currentIndex = Mathf.Clamp(initIndex, 0, Mathf.Max(0, lyrics.Count - 1));
+        float viewportHeight = scrollRect.viewport != null ? scrollRect.viewport.rect.height : 0f;
+        float targetY = currentIndex * lineHeight - viewportHeight / 2f + lineHeight / 2f;
+        targetY = Mathf.Clamp(targetY, 0f, Mathf.Max(0f, content.sizeDelta.y - viewportHeight));
+        content.anchoredPosition = new Vector2(content.anchoredPosition.x, targetY);
+    }
 }
 }
